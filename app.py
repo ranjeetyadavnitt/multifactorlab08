@@ -20,21 +20,43 @@ from security import (
 )
 import models
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static'
+)
+
+# Use persistent SECRET_KEY from environment or stable fallback so sessions remain valid across serverless instances
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secureshop-defense-key-b9e3a7c18f4d2e5a6c0b')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False # Set True in production HTTPS
+# Secure cookies when running on Vercel (HTTPS)
+app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('VERCEL') or os.environ.get('SESSION_COOKIE_SECURE'))
 app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 7 # 7 days
 
-# Initialize DB and seeds on application start
-with app.app_context():
-    init_db()
+# Initialize DB on start with graceful exception handling
+try:
+    with app.app_context():
+        init_db()
+except Exception as e:
+    app.logger.warning(f"Initial DB sync notice: {e}")
 
 # --- Middleware & Hooks ---
 
+_db_initialized = False
+
 @app.before_request
 def before_request():
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            init_db()
+            _db_initialized = True
+        except Exception as e:
+            app.logger.warning(f"Lazy DB init notice: {e}")
+
     # Ensure guest session identifier exists
     if 'session_id' not in session:
         session['session_id'] = secrets.token_hex(16)

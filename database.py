@@ -1,11 +1,40 @@
 import sqlite3
 import os
+import shutil
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'secureshop.db')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = 'secureshop.db'
+
+import tempfile
+
+def get_db_path():
+    """Resolve database path, adapting for serverless/read-only environments like Vercel."""
+    is_serverless = bool(
+        os.environ.get('VERCEL') or
+        os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or
+        os.environ.get('NOW_REGION') or
+        not os.access(BASE_DIR, os.W_OK)
+    )
+    if is_serverless:
+        tmp_dir = tempfile.gettempdir() if os.name == 'nt' else '/tmp'
+        os.makedirs(tmp_dir, exist_ok=True)
+        tmp_db = os.path.join(tmp_dir, DB_FILE)
+        src_db = os.path.join(BASE_DIR, DB_FILE)
+        # Copy seeded database to tmp directory if not already present
+        if not os.path.exists(tmp_db) and os.path.exists(src_db):
+            try:
+                shutil.copyfile(src_db, tmp_db)
+            except Exception:
+                pass
+        return tmp_db
+    return os.path.join(BASE_DIR, DB_FILE)
+
+DB_PATH = get_db_path()
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    current_path = get_db_path()
+    conn = sqlite3.connect(current_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

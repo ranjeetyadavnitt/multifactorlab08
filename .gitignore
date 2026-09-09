@@ -1,7 +1,6 @@
 __pycache__/
 *.py[cod]
-*.db
-*.sqlite3
+!secureshop.db
 .vscode/
 .DS_Store
 venv/
