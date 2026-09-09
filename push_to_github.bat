@@ -42,10 +42,10 @@ echo.
 
 echo [3/4] Verifying remote origin...
 git remote -v
-git remote set-url origin https://github.com/ranjeetyadavnitt/Secureshop.git 2>nul || git remote add origin https://github.com/ranjeetyadavnitt/Secureshop.git
+git remote set-url origin https://github.com/ranjeetyadavnitt/multifactorlab08.git 2>nul || git remote add origin https://github.com/ranjeetyadavnitt/multifactorlab08.git
 echo.
 
-echo [4/4] Pushing to https://github.com/ranjeetyadavnitt/Secureshop.git ...
+echo [4/4] Pushing to https://github.com/ranjeetyadavnitt/multifactorlab08.git ...
 echo.
 echo NOTE: If prompted, Git Credential Manager will open a browser window
 echo       for you to authenticate with GitHub.
@@ -57,7 +57,7 @@ if %errorlevel% equ 0 (
     echo.
     echo ================================================================
     echo [SUCCESS] Code successfully pushed to GitHub!
-    echo Repository: https://github.com/ranjeetyadavnitt/Secureshop
+    echo Repository: https://github.com/ranjeetyadavnitt/multifactorlab08
     echo ================================================================
 ) else (
     echo.
@@ -72,7 +72,7 @@ if %errorlevel% equ 0 (
     set /p GITHUB_TOKEN="Enter GitHub Personal Access Token (or press Enter to exit): "
     if defined GITHUB_TOKEN (
         echo Pushing with provided token...
-        git push https://!GITHUB_TOKEN!@github.com/ranjeetyadavnitt/Secureshop.git main
+        git push https://!GITHUB_TOKEN!@github.com/ranjeetyadavnitt/multifactorlab08.git main
         if !errorlevel! equ 0 (
             echo.
             echo [SUCCESS] Successfully pushed using Personal Access Token!
