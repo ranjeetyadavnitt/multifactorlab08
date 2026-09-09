@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="ytBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="30%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0b1120" />
+    </linearGradient>
+    <linearGradient id="ytGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="40%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <filter id="ytShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" />
+      <feOffset dx="0" dy="16" />
+      <feComponentTransfer><feFuncA type="linear" slope="0.18" /></feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ground Contact Shadow -->
+  <ellipse cx="200" cy="265" rx="70" ry="14" fill="#0f172a" opacity="0.18" />
+  <ellipse cx="200" cy="263" rx="50" ry="8" fill="#0f172a" opacity="0.25" />
+
+  <g filter="url(#ytShadow)">
+    <!-- USB-A Metallic Contact Tongue -->
+    <rect x="160" y="24" width="80" height="46" rx="4" fill="url(#ytGold)" stroke="#d97706" stroke-width="1.2" />
+    <rect x="172" y="30" width="8" height="28" rx="2" fill="#78350f" />
+    <rect x="190" y="30" width="8" height="28" rx="2" fill="#78350f" />
+    <rect x="204" y="30" width="8" height="28" rx="2" fill="#78350f" />
+    <rect x="220" y="30" width="8" height="28" rx="2" fill="#78350f" />
+
+    <!-- Main Token Body -->
+    <rect x="140" y="65" width="120" height="185" rx="18" fill="url(#ytBody)" stroke="#475569" stroke-width="1.5" />
+
+    <!-- Printed NFC Radio Loop Antennas -->
+    <path d="M180 115 A20 20 0 0 1 220 115" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" />
+    <path d="M170 105 A32 32 0 0 1 230 105" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" />
+    <path d="M160 95 A44 44 0 0 1 240 95" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Smart Card Security Contact Button -->
+    <circle cx="200" cy="155" r="24" fill="#020617" stroke="url(#ytGold)" stroke-width="3" />
+    <circle cx="200" cy="155" r="14" fill="url(#ytGold)" />
+    <!-- Center 'Y' Touch Emblem -->
+    <path d="M195 147 L200 155 L205 147 M200 155 V163" fill="none" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" />
+
+    <!-- Keyring Loop at Base -->
+    <circle cx="200" cy="220" r="14" fill="none" stroke="url(#ytGold)" stroke-width="3.5" />
+    <circle cx="200" cy="220" r="9" fill="#ffffff" opacity="0.95" />
+  </g>
+</svg>

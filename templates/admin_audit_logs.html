@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Security Audit Logs | SecureShop Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 class="section-title"><i class="fas fa-clipboard-list"></i> Security & Access Audit Log</h1>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+            Immutable forensic trace of authentication attempts, CSRF blocks, order placements, and administrative actions
+        </p>
+    </div>
+</div>
+
+<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Timestamp</th>
+                    <th>Security Event</th>
+                    <th>User / Subject</th>
+                    <th>IP Address</th>
+                    <th>User Agent / Client</th>
+                    <th>Event Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="font-family: monospace; font-size: 11px; color: var(--text-muted);">
+                        #{{ log['id'] }}
+                    </td>
+                    <td style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">
+                        {{ log['created_at'] }}
+                    </td>
+                    <td>
+                        {% if 'FAILED' in log['event_type'] or 'LOCKED' in log['event_type'] or 'BLOCKED' in log['event_type'] %}
+                            <span class="badge badge-danger"><i class="fas fa-shield-virus"></i> {{ log['event_type'] }}</span>
+                        {% elif 'SUCCESS' in log['event_type'] or 'INITIALIZED' in log['event_type'] or 'ORDER_PLACED' in log['event_type'] %}
+                            <span class="badge badge-primary"><i class="fas fa-shield-check"></i> {{ log['event_type'] }}</span>
+                        {% else %}
+                            <span class="badge badge-info"><i class="fas fa-info-circle"></i> {{ log['event_type'] }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">
+                        {{ log['username'] or 'Anonymous' }}
+                        {% if log['user_id'] %}
+                        <span style="font-size: 10px; color: var(--text-muted); font-family: monospace;">(ID: {{ log['user_id'] }})</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family: monospace; font-size: 12px; color: var(--accent-cyan);">
+                        {{ log['ip_address'] or '127.0.0.1' }}
+                    </td>
+                    <td style="font-size: 11px; color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ log['user_agent'] }}">
+                        {{ log['user_agent'] or 'N/A' }}
+                    </td>
+                    <td style="font-size: 12px; color: var(--text-primary); max-width: 350px;">
+                        {{ log['details'] or '' }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">No security audit logs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

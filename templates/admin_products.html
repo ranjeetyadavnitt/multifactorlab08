@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Management | SecureShop Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 class="section-title"><i class="fas fa-boxes"></i> Hardware Inventory Management</h1>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+            Catalog management, stock levels, cryptographic pricing, and hardware SKUs
+        </p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="document.getElementById('newProductModal').style.display='flex'">
+        <i class="fas fa-plus"></i> Add New Product
+    </button>
+</div>
+
+<!-- Products Table -->
+<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>SKU / Product</th>
+                    <th>Category</th>
+                    <th>Unit Price</th>
+                    <th>Stock Remaining</th>
+                    <th>Badge</th>
+                    <th>Featured</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ p['image_url'] or url_for('static', filename='images/logo.svg') }}" alt="{{ p['name'] }}" style="width: 36px; height: 36px; object-fit: contain; background: #090d16; border-radius: 6px; padding: 2px;">
+                            <div>
+                                <a href="{{ url_for('product_detail', slug=p['slug']) }}" target="_blank" style="color: var(--text-primary); font-weight: 600; text-decoration: none;">
+                                    {{ p['name'] }}
+                                </a>
+                                <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">{{ p['slug'] }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-size: 13px;">
+                        {{ p['category_name'] }}
+                    </td>
+                    <td style="font-weight: 700; color: var(--text-primary);">
+                        ${{ "%.2f"|format(p['price']) }}
+                    </td>
+                    <td>
+                        {% if p['stock'] <= 5 %}
+                            <span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> {{ p['stock'] }} left</span>
+                        {% elif p['stock'] <= 15 %}
+                            <span class="badge badge-warning">{{ p['stock'] }} in stock</span>
+                        {% else %}
+                            <span class="badge badge-primary">{{ p['stock'] }} in stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p['badge'] %}
+                            <span class="badge badge-info">{{ p['badge'] }}</span>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 12px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p['is_featured'] %}
+                            <span style="color: var(--primary);"><i class="fas fa-check-circle"></i> Yes</span>
+                        {% else %}
+                            <span style="color: var(--text-muted);">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-secondary btn-sm" onclick="editProduct({{ p['id'] }}, '{{ p['name']|escape }}', '{{ p['slug']|escape }}', {{ p['category_id'] }}, {{ p['price'] }}, {{ p['stock'] }}, '{{ (p['badge'] or '')|escape }}', '{{ (p['image_url'] or '')|escape }}', {{ p['is_featured'] }}, '{{ (p['short_desc'] or '')|replace('\n', ' ')|replace('\'', '\\\'') }}', '{{ (p['description'] or '')|replace('\n', ' ')|replace('\'', '\\\'') }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ url_for('admin_product_delete', product_id=p['id']) }}" method="POST" onsubmit="return confirm('Permanently delete {{ p['name'] }}?');" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal for Create / Edit Product -->
+<div id="newProductModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: var(--shadow-lg);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="modalTitle" style="font-size: 18px; font-weight: 700;"><i class="fas fa-box"></i> Add Hardware Product</h2>
+            <button type="button" onclick="closeModal()" style="background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+
+        <form id="productForm" action="{{ url_for('admin_product_save') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" id="formProductId" name="product_id" value="">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Product Name *</label>
+                    <input type="text" id="pName" name="name" class="form-input" style="width: 100%;" required placeholder="e.g. TitanKey Nano FIDO2">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Slug Identifier *</label>
+                    <input type="text" id="pSlug" name="slug" class="form-input" style="width: 100%;" required placeholder="e.g. titankey-nano-fido2">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select id="pCategoryId" name="category_id" class="form-input" style="width: 100%;" required>
+                        {% for c in categories %}
+                        <option value="{{ c['id'] }}">{{ c['name'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Badge Label (optional)</label>
+                    <input type="text" id="pBadge" name="badge" class="form-input" style="width: 100%;" placeholder="e.g. Best Seller, Military Grade">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Unit Price ($ USD) *</label>
+                    <input type="number" id="pPrice" name="price" step="0.01" min="0" class="form-input" style="width: 100%;" required placeholder="49.99">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Initial Stock *</label>
+                    <input type="number" id="pStock" name="stock" min="0" class="form-input" style="width: 100%;" required placeholder="25">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Image URL / Path</label>
+                <input type="text" id="pImage" name="image_url" class="form-input" style="width: 100%;" placeholder="/static/images/products/titankey.svg">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Short Description *</label>
+                <input type="text" id="pShortDesc" name="short_desc" class="form-input" style="width: 100%;" required placeholder="One-line summary for cards">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Full Technical Description *</label>
+                <textarea id="pDescription" name="description" class="form-input" style="width: 100%; min-height: 90px; resize: vertical;" required placeholder="Detailed specifications, EAL level, compliance..."></textarea>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="pFeatured" name="is_featured" value="1">
+                <label for="pFeatured" style="font-size: 13px; cursor: pointer;">Feature on homepage spotlight grid</label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function closeModal() {
+    document.getElementById('newProductModal').style.display = 'none';
+    document.getElementById('productForm').reset();
+    document.getElementById('formProductId').value = '';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-box"></i> Add Hardware Product';
+}
+
+function editProduct(id, name, slug, catId, price, stock, badge, img, featured, shortDesc, desc) {
+    document.getElementById('formProductId').value = id;
+    document.getElementById('pName').value = name;
+    document.getElementById('pSlug').value = slug;
+    document.getElementById('pCategoryId').value = catId;
+    document.getElementById('pPrice').value = price;
+    document.getElementById('pStock').value = stock;
+    document.getElementById('pBadge').value = badge;
+    document.getElementById('pImage').value = img;
+    document.getElementById('pFeatured').checked = (featured == 1);
+    document.getElementById('pShortDesc').value = shortDesc;
+    document.getElementById('pDescription').value = desc;
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Product: ' + name;
+    document.getElementById('newProductModal').style.display = 'flex';
+}
+</script>
+{% endblock %}

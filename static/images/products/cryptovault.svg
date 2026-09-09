@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="cvSteel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f1f5f9" />
+      <stop offset="25%" stop-color="#94a3b8" />
+      <stop offset="60%" stop-color="#64748b" />
+      <stop offset="85%" stop-color="#cbd5e1" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+    <linearGradient id="cvTile" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <filter id="cvShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12" />
+      <feOffset dx="0" dy="16" />
+      <feComponentTransfer><feFuncA type="linear" slope="0.22" /></feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="270" rx="125" ry="16" fill="#0f172a" opacity="0.2" />
+
+  <g filter="url(#cvShadow)">
+    <rect x="85" y="45" width="230" height="205" rx="12" fill="url(#cvSteel)" stroke="#475569" stroke-width="2.5" />
+    <rect x="92" y="52" width="216" height="191" rx="8" fill="none" stroke="#f8fafc" stroke-width="1.2" opacity="0.7" />
+
+    <!-- 4 Countersunk Torx Security Screws -->
+    <circle cx="106" cy="66" r="6" fill="#475569" stroke="#94a3b8" stroke-width="1" />
+    <path d="M106 63 L106 69 M103 66 L109 66" stroke="#0f172a" stroke-width="1.5" />
+    <circle cx="294" cy="66" r="6" fill="#475569" stroke="#94a3b8" stroke-width="1" />
+    <path d="M294 63 L294 69 M291 66 L297 66" stroke="#0f172a" stroke-width="1.5" />
+    <circle cx="106" cy="229" r="6" fill="#475569" stroke="#94a3b8" stroke-width="1" />
+    <path d="M106 226 L106 232 M103 229 L109 229" stroke="#0f172a" stroke-width="1.5" />
+    <circle cx="294" cy="229" r="6" fill="#475569" stroke="#94a3b8" stroke-width="1" />
+    <path d="M294 226 L294 232 M291 229 L297 229" stroke="#0f172a" stroke-width="1.5" />
+
+    <!-- Precision Milled Tile Slots with Stamped Steel Letter Tiles -->
+    <g font-family="monospace" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">
+      <!-- Row 1: Word 01 -->
+      <text x="120" y="98" font-size="9" fill="#334155">01</text>
+      <rect x="135" y="85" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="144" y="98">A</text>
+      <rect x="156" y="85" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="165" y="98">B</text>
+      <rect x="177" y="85" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="186" y="98">A</text>
+      <rect x="198" y="85" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="207" y="98">N</text>
+      <rect x="222" y="85" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+      <rect x="243" y="85" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+
+      <!-- Row 2: Word 02 -->
+      <text x="120" y="128" font-size="9" fill="#334155">02</text>
+      <rect x="135" y="115" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="144" y="128">C</text>
+      <rect x="156" y="115" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="165" y="128">I</text>
+      <rect x="177" y="115" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="186" y="128">P</text>
+      <rect x="198" y="115" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="207" y="128">H</text>
+      <rect x="222" y="115" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+      <rect x="243" y="115" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+
+      <!-- Row 3: Word 03 -->
+      <text x="120" y="158" font-size="9" fill="#334155">03</text>
+      <rect x="135" y="145" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="144" y="158">S</text>
+      <rect x="156" y="145" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="165" y="158">H</text>
+      <rect x="177" y="145" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="186" y="158">I</text>
+      <rect x="198" y="145" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="207" y="158">E</text>
+      <rect x="222" y="145" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+      <rect x="243" y="145" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+
+      <!-- Row 4: Word 04 -->
+      <text x="120" y="188" font-size="9" fill="#334155">04</text>
+      <rect x="135" y="175" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="144" y="188">Z</text>
+      <rect x="156" y="175" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="165" y="188">E</text>
+      <rect x="177" y="175" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="186" y="188">R</text>
+      <rect x="198" y="175" width="18" height="18" rx="2" fill="url(#cvTile)" stroke="#64748b" /><text x="207" y="188">O</text>
+      <rect x="222" y="175" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+      <rect x="243" y="175" width="18" height="18" rx="2" fill="#334155" stroke="#64748b" />
+    </g>
+  </g>
+</svg>

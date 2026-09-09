@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders | SecureShop Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 class="section-title"><i class="fas fa-shipping-fast"></i> Order Processing & Dispatch</h1>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+            Full history of customer hardware purchases, fulfillment status, and carrier tracking
+        </p>
+    </div>
+</div>
+
+<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Address</th>
+                    <th>Payment</th>
+                    <th>Fulfillment Status</th>
+                    <th>Tracking Number</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--primary);">
+                        {{ order['order_number'] }}
+                    </td>
+                    <td style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">
+                        {{ order['created_at'] }}
+                    </td>
+                    <td>
+                        <div style="font-weight: 600;">{{ order['customer_name'] }}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">{{ order['customer_email'] }}</div>
+                    </td>
+                    <td style="font-size: 12px; color: var(--text-secondary);">
+                        {{ order['shipping_address'] }}<br>
+                        {{ order['city'] }}, {{ order['state'] }} {{ order['zip_code'] }}
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ order['payment_method'] }}</span>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('admin_order_update', order_id=order['id']) }}" method="POST" style="display: flex; gap: 6px; align-items: center;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select name="status" class="form-input" style="padding: 4px 8px; font-size: 12px; height: auto;" onchange="this.form.submit()">
+                                <option value="Processing" {% if order['order_status'] == 'Processing' %}selected{% endif %}>Processing</option>
+                                <option value="Shipped" {% if order['order_status'] == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                <option value="Delivered" {% if order['order_status'] == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                <option value="Cancelled" {% if order['order_status'] == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('admin_order_update', order_id=order['id']) }}" method="POST" style="display: flex; gap: 4px; align-items: center;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="status" value="{{ order['order_status'] }}">
+                            <input type="text" name="tracking_number" value="{{ order['tracking_number'] or '' }}" class="form-input" style="padding: 3px 6px; font-size: 11px; font-family: monospace; width: 130px; height: auto;" placeholder="TRK-...">
+                            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 3px 8px;" title="Update Tracking"><i class="fas fa-check"></i></button>
+                        </form>
+                    </td>
+                    <td style="font-weight: 700; color: var(--text-primary);">
+                        ${{ "%.2f"|format(order['total_amount']) }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('order_success', order_number=order['order_number']) }}" class="btn btn-secondary btn-sm" target="_blank">
+                            <i class="fas fa-file-invoice"></i> Receipt
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 32px;">No orders found in database.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

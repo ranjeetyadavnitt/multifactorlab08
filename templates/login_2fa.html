@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication | SecureShop{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper mfa-wrapper">
+    <!-- Progress Indicator -->
+    <div class="auth-progress">
+        <div class="progress-step completed">
+            <span class="step-num"><i class="fas fa-check"></i></span>
+            <span class="step-label">Credentials</span>
+        </div>
+        <div class="progress-line active"></div>
+        <div class="progress-step active">
+            <span class="step-num">2</span>
+            <span class="step-label">Verification</span>
+        </div>
+    </div>
+
+    <!-- Header & Identity Badge -->
+    <div class="auth-header">
+        <div class="auth-icon-badge">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h2>Two-Factor Authentication</h2>
+        <p class="auth-subtitle">Verify your identity to complete secure sign-in</p>
+
+        <div class="user-account-badge">
+            <div class="user-avatar-sm">{{ username[:2]|upper }}</div>
+            <div class="user-info-text">
+                <strong>{{ username }}</strong>
+                <span>{{ email }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Demo / Testing Assistant Pill (Ensures seamless testing) -->
+    <div class="demo-code-card">
+        <div class="demo-code-header">
+            <span class="pulse-indicator"></span>
+            <strong>Testing / Sandbox Security Passcode:</strong>
+        </div>
+        <div class="demo-code-body">
+            <span class="demo-code-digits" id="sampleOtpDisplay">{{ current_otp }}</span>
+            <button type="button" class="btn btn-secondary btn-xs" id="btnAutofillCode" title="Click to fill automatically">
+                <i class="fas fa-wand-magic-sparkles"></i> Auto-Fill Code
+            </button>
+        </div>
+        <p class="demo-code-hint">You can also generate codes using Google Authenticator, Microsoft Authenticator, or use a backup recovery code.</p>
+    </div>
+
+    <!-- Verification Form -->
+    <form action="{{ url_for('login_2fa') }}" method="POST" id="mfaForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="code" id="hiddenFullCode" value="">
+
+        <!-- Tabs: 6-Digit Code vs Backup Recovery Code -->
+        <div class="mfa-tabs">
+            <button type="button" class="mfa-tab-btn active" id="tabCodeBtn" onclick="switchMfaTab('code')">
+                <i class="fas fa-mobile-screen"></i> 6-Digit Code
+            </button>
+            <button type="button" class="mfa-tab-btn" id="tabBackupBtn" onclick="switchMfaTab('backup')">
+                <i class="fas fa-key"></i> Recovery Code
+            </button>
+        </div>
+
+        <!-- Tab 1: 6-Digit Code Input -->
+        <div id="mfaCodeTab">
+            <label class="form-label" style="text-align: center; margin-bottom: 12px;">
+                Enter 6-digit code from your authenticator app or email passcode
+            </label>
+
+            <div class="otp-inputs-row" id="otpBoxContainer">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" autofocus autocomplete="one-time-code">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box">
+            </div>
+
+            <!-- Timer Countdown -->
+            <div class="mfa-timer-row">
+                <span><i class="far fa-clock"></i> Code expires in: <strong id="mfaCountdown" data-seconds="{{ remaining_seconds }}">05:00</strong></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btnSubmitMfa" style="margin-top: 16px;">
+                <i class="fas fa-lock-open"></i> Verify Identity & Sign In
+            </button>
+        </div>
+
+        <!-- Tab 2: Backup Recovery Code -->
+        <div id="mfaBackupTab" style="display: none;">
+            <div class="form-group">
+                <label class="form-label" for="backup_code">8-Character Recovery Code</label>
+                <input type="text" id="backup_code" name="backup_code" class="form-input" style="width: 100%; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 2px; text-align: center; font-size: 16px;" placeholder="XXXX-XXXX">
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: center;">
+                    Enter one of the single-use backup recovery codes provided upon account registration.
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px;">
+                <i class="fas fa-shield-alt"></i> Verify with Recovery Code
+            </button>
+        </div>
+    </form>
+
+    <!-- Resend and Cancel Actions -->
+    <div class="mfa-footer-actions">
+        <form action="{{ url_for('login_2fa_resend') }}" method="POST" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-link-action">
+                <i class="fas fa-rotate-right"></i> Resend Security Passcode
+            </button>
+        </form>
+        <span class="action-sep">•</span>
+        <a href="{{ url_for('login_2fa_cancel') }}" class="btn-link-action" style="color: var(--text-muted);">
+            <i class="fas fa-arrow-left"></i> Cancel & Sign Out
+        </a>
+    </div>
+
+    <!-- Authenticator App Setup Details (Accordion) -->
+    <div class="auth-app-accordion">
+        <button type="button" class="accordion-toggle" onclick="toggleAccordion('authenticatorGuide')">
+            <span><i class="fas fa-qrcode"></i> Use Google Authenticator / 1Password instead?</span>
+            <i class="fas fa-chevron-down accordion-arrow"></i>
+        </button>
+        <div class="accordion-content" id="authenticatorGuide">
+            <div class="qr-setup-box">
+                <div class="qr-image-wrap">
+                    <img src="{{ qr_code_url }}" alt="TOTP QR Code" class="qr-code-img">
+                </div>
+                <div class="qr-details">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                        Scan this QR code in Google Authenticator, Authy, or 1Password to generate live 30-second codes.
+                    </p>
+                    <label style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Secret Key (Manual Entry):</label>
+                    <div class="copy-key-box">
+                        <code id="totpSecretKey">{{ totp_secret }}</code>
+                        <button type="button" class="btn btn-secondary btn-xs" onclick="copyText('totpSecretKey', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function switchMfaTab(tab) {
+    const codeTab = document.getElementById('mfaCodeTab');
+    const backupTab = document.getElementById('mfaBackupTab');
+    const tabCodeBtn = document.getElementById('tabCodeBtn');
+    const tabBackupBtn = document.getElementById('tabBackupBtn');
+
+    if (tab === 'code') {
+        codeTab.style.display = 'block';
+        backupTab.style.display = 'none';
+        tabCodeBtn.classList.add('active');
+        tabBackupBtn.classList.remove('active');
+        const firstBox = document.querySelector('.otp-box');
+        if (firstBox) firstBox.focus();
+    } else {
+        codeTab.style.display = 'none';
+        backupTab.style.display = 'block';
+        tabCodeBtn.classList.remove('active');
+        tabBackupBtn.classList.add('active');
+        const backupInput = document.getElementById('backup_code');
+        if (backupInput) backupInput.focus();
+    }
+}
+
+function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    const arrow = el.previousElementSibling.querySelector('.accordion-arrow');
+    if (el.style.display === 'block') {
+        el.style.display = 'none';
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+    } else {
+        el.style.display = 'block';
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+    }
+}
+
+function copyText(elemId, btn) {
+    const text = document.getElementById(elemId).textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check" style="color: var(--primary);"></i> Copied';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account | SecureShop{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Header -->
+    <div class="auth-header">
+        <div class="auth-icon-badge">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <h2>Create an Account</h2>
+        <p class="auth-subtitle">Join SecureShop for authentic hardware security & automated 2FA protection</p>
+    </div>
+
+    <form action="{{ url_for('register') }}" method="POST" id="registerForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+            <label class="form-label" for="regUsername">Choose Username</label>
+            <div class="input-icon-wrap">
+                <i class="fas fa-user input-leading-icon"></i>
+                <input type="text" id="regUsername" name="username" class="form-input with-icon" required placeholder="e.g. cyber_operator" pattern="[A-Za-z0-9_]{3,20}" title="3-20 letters, numbers, or underscores" value="{{ request.form.get('username', '') }}" autocomplete="username">
+            </div>
+            <div class="field-hint">3-20 characters: letters, numbers, underscores.</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="regEmail">Email Address</label>
+            <div class="input-icon-wrap">
+                <i class="fas fa-envelope input-leading-icon"></i>
+                <input type="email" id="regEmail" name="email" class="form-input with-icon" required placeholder="name@domain.com" value="{{ request.form.get('email', '') }}" autocomplete="email">
+            </div>
+            <div class="field-hint">Used strictly for order receipts and 2FA security passcodes.</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="regPassword">Master Password</label>
+            <div class="input-icon-wrap">
+                <i class="fas fa-lock input-leading-icon"></i>
+                <input type="password" id="regPassword" name="password" class="form-input with-icon" required placeholder="Minimum 8 characters" autocomplete="new-password">
+                <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('regPassword', this)">
+                    <i class="far fa-eye"></i>
+                </button>
+            </div>
+            
+            <!-- Live Password Strength Checklist & Bar -->
+            <div class="password-strength-container" style="margin-top: 10px;">
+                <div class="strength-meter-bar-track">
+                    <div id="passwordMeterBar" class="strength-meter-bar-fill"></div>
+                </div>
+                <div id="passwordMeterText" class="strength-meter-label">Password strength: Enter password</div>
+
+                <div class="password-requirements-checklist">
+                    <div class="req-item" id="reqLength"><i class="fas fa-circle-xmark"></i> At least 8 characters</div>
+                    <div class="req-item" id="reqUpper"><i class="fas fa-circle-xmark"></i> Uppercase letter (A-Z)</div>
+                    <div class="req-item" id="reqNumber"><i class="fas fa-circle-xmark"></i> Number (0-9)</div>
+                    <div class="req-item" id="reqSymbol"><i class="fas fa-circle-xmark"></i> Symbol (!@#$%^&*)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="regConfirmPassword">Confirm Master Password</label>
+            <div class="input-icon-wrap">
+                <i class="fas fa-lock-keyhole input-leading-icon"></i>
+                <input type="password" id="regConfirmPassword" name="confirm_password" class="form-input with-icon" required placeholder="Re-enter password" autocomplete="new-password">
+                <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('regConfirmPassword', this)">
+                    <i class="far fa-eye"></i>
+                </button>
+            </div>
+            <div id="matchFeedback" class="field-hint"></div>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSubmitRegister">
+                <i class="fas fa-shield-halved"></i> Create Protected Account
+            </button>
+        </div>
+    </form>
+
+    <div class="auth-card-footer">
+        <p>Already have an account? <a href="{{ url_for('login') }}" class="primary-link">Sign in here</a></p>
+        <div class="auth-security-note">
+            <i class="fas fa-lock" style="color: var(--primary);"></i>
+            <span>Two-Factor Authentication (TOTP + Passcode) will be automatically configured upon registration.</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'far fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'far fa-eye';
+    }
+}
+
+// Live password requirements checker
+document.addEventListener('DOMContentLoaded', () => {
+    const pwd = document.getElementById('regPassword');
+    const confirm = document.getElementById('regConfirmPassword');
+    const match = document.getElementById('matchFeedback');
+
+    if (pwd) {
+        pwd.addEventListener('input', () => {
+            const val = pwd.value;
+            const hasLen = val.length >= 8;
+            const hasUpper = /[A-Z]/.test(val);
+            const hasNum = /[0-9]/.test(val);
+            const hasSym = /[\W_]/.test(val);
+
+            updateReq('reqLength', hasLen);
+            updateReq('reqUpper', hasUpper);
+            updateReq('reqNumber', hasNum);
+            updateReq('reqSymbol', hasSym);
+
+            const score = (hasLen?1:0) + (hasUpper?1:0) + (hasNum?1:0) + (hasSym?1:0);
+            const bar = document.getElementById('passwordMeterBar');
+            const lbl = document.getElementById('passwordMeterText');
+            if (bar && lbl) {
+                if (score === 0) {
+                    bar.style.width = '0%';
+                    lbl.textContent = 'Password strength: Too short';
+                    bar.style.backgroundColor = '#64748b';
+                } else if (score < 3) {
+                    bar.style.width = '35%';
+                    lbl.textContent = 'Password strength: Weak';
+                    bar.style.backgroundColor = '#ef4444';
+                } else if (score === 3) {
+                    bar.style.width = '70%';
+                    lbl.textContent = 'Password strength: Good';
+                    bar.style.backgroundColor = '#f59e0b';
+                } else {
+                    bar.style.width = '100%';
+                    lbl.textContent = 'Password strength: Strong & Meets Policy';
+                    bar.style.backgroundColor = '#10b981';
+                }
+            }
+        });
+    }
+
+    if (confirm && pwd) {
+        confirm.addEventListener('input', () => {
+            if (!confirm.value) {
+                match.textContent = '';
+                return;
+            }
+            if (confirm.value === pwd.value) {
+                match.textContent = '✓ Passwords match';
+                match.style.color = '#10b981';
+            } else {
+                match.textContent = '✗ Passwords do not match';
+                match.style.color = '#ef4444';
+            }
+        });
+    }
+
+    function updateReq(id, valid) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (valid) {
+            el.className = 'req-item valid';
+            el.querySelector('i').className = 'fas fa-circle-check';
+        } else {
+            el.className = 'req-item';
+            el.querySelector('i').className = 'fas fa-circle-xmark';
+        }
+    }
+});
+</script>
+{% endblock %}

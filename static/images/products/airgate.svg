@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="agBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="35%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="agScreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <filter id="agShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12" />
+      <feOffset dx="0" dy="16" />
+      <feComponentTransfer><feFuncA type="linear" slope="0.22" /></feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ground Contact Shadow -->
+  <ellipse cx="200" cy="272" rx="85" ry="14" fill="#0f172a" opacity="0.2" />
+
+  <g filter="url(#agShadow)">
+    <!-- Main Handheld Enclosure -->
+    <rect x="130" y="25" width="140" height="235" rx="20" fill="url(#agBody)" stroke="#64748b" stroke-width="1.8" />
+    
+    <!-- Top Air-Gapped Optical Camera Scanner Lens -->
+    <circle cx="200" cy="42" r="7" fill="#020617" stroke="#475569" stroke-width="1.5" />
+    <circle cx="200" cy="42" r="3.5" fill="#4f46e5" />
+    <circle cx="199" cy="41" r="1" fill="#ffffff" />
+
+    <!-- Color LCD Screen Display with Glass Reflection -->
+    <rect x="145" y="60" width="110" height="120" rx="8" fill="url(#agScreen)" stroke="#1e293b" stroke-width="1.5" />
+    
+    <!-- Screen Header -->
+    <rect x="145" y="60" width="110" height="18" rx="6" fill="#0f172a" />
+    <text x="200" y="73" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="700" fill="#38bdf8" text-anchor="middle">SIGN TRANSACTION</text>
+
+    <!-- Animated Dynamic Signing QR Matrix -->
+    <g fill="#f8fafc">
+      <!-- Top-Left Target -->
+      <rect x="156" y="86" width="22" height="22" rx="2" />
+      <rect x="160" y="90" width="14" height="14" fill="#020617" />
+      <rect x="163" y="93" width="8" height="8" />
+
+      <!-- Top-Right Target -->
+      <rect x="222" y="86" width="22" height="22" rx="2" />
+      <rect x="226" y="90" width="14" height="14" fill="#020617" />
+      <rect x="229" y="93" width="8" height="8" />
+
+      <!-- Bottom-Left Target -->
+      <rect x="156" y="136" width="22" height="22" rx="2" />
+      <rect x="160" y="140" width="14" height="14" fill="#020617" />
+      <rect x="163" y="143" width="8" height="8" />
+
+      <!-- QR Payload Data Matrix -->
+      <rect x="186" y="86" width="6" height="6" /><rect x="202" y="86" width="8" height="6" />
+      <rect x="194" y="96" width="14" height="6" /><rect x="186" y="106" width="8" height="8" />
+      <rect x="204" y="106" width="10" height="6" /><rect x="222" y="116" width="6" height="12" />
+      <rect x="186" y="122" width="12" height="6" /><rect x="206" y="122" width="8" height="8" />
+      <rect x="186" y="136" width="6" height="14" /><rect x="200" y="144" width="12" height="6" />
+      <rect x="222" y="136" width="10" height="14" />
+    </g>
+
+    <!-- Screen Glass Sheen Diagonal Glare -->
+    <polygon points="145,60 190,60 155,180 145,180" fill="#ffffff" opacity="0.04" />
+
+    <!-- Directional Navigation Keypad (D-Pad) -->
+    <g transform="translate(178, 195)">
+      <rect x="15" y="0" width="14" height="44" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1" />
+      <rect x="0" y="15" width="44" height="14" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1" />
+      <circle cx="22" cy="22" r="8" fill="#4f46e5" stroke="#818cf8" stroke-width="1" />
+      <circle cx="22" cy="22" r="4" fill="#ffffff" />
+    </g>
+  </g>
+</svg>

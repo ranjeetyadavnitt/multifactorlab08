@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Security Hardware Catalog | SecureShop{% endblock %}
+
+{% block content %}
+<div class="catalog-header-wrap">
+    <div class="breadcrumbs-row">
+        <a href="{{ url_for('index') }}">Home</a>
+        <i class="fas fa-chevron-right breadcrumb-sep"></i>
+        <span>Catalog</span>
+        {% if current_category %}
+        <i class="fas fa-chevron-right breadcrumb-sep"></i>
+        <span>{{ current_category['name'] }}</span>
+        {% endif %}
+    </div>
+
+    <div class="section-header-row">
+        <div>
+            <h1 class="section-heading">
+                {% if current_category %}
+                    <i class="{{ current_category['icon'] }}"></i> {{ current_category['name'] }}
+                {% elif search_query %}
+                    <i class="fas fa-search"></i> Search: "{{ search_query }}"
+                {% else %}
+                    <i class="fas fa-boxes-stacked"></i> All Security Hardware
+                {% endif %}
+            </h1>
+            <p class="section-subheading">
+                Showing {{ products|length }} certified physical defense item{{ 's' if products|length != 1 else '' }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Modern Filter & Sort Toolbar -->
+<div class="filter-toolbar">
+    <div class="filter-category-chips">
+        <a href="{{ url_for('products', sort=current_sort, q=search_query) }}"
+           class="category-chip {% if not current_category %}active{% endif %}">
+           <i class="fas fa-border-all"></i> All Products
+        </a>
+        {% for cat in categories %}
+        <a href="{{ url_for('products', category=cat['slug'], sort=current_sort, q=search_query) }}"
+           class="category-chip {% if current_category and current_category['slug'] == cat['slug'] %}active{% endif %}">
+           <i class="{{ cat['icon'] }}"></i> {{ cat['name'] }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Sort Selector -->
+    <form method="GET" action="{{ url_for('products') }}" class="sort-selector-form" id="sortForm">
+        {% if current_category %}
+        <input type="hidden" name="category" value="{{ current_category['slug'] }}">
+        {% endif %}
+        {% if search_query %}
+        <input type="hidden" name="q" value="{{ search_query }}">
+        {% endif %}
+
+        <label for="sortSelect" class="sort-label"><i class="fas fa-arrow-down-short-wide"></i> Sort:</label>
+        <select id="sortSelect" name="sort" class="form-select-sm" onchange="document.getElementById('sortForm').submit()">
+            <option value="featured" {% if current_sort == 'featured' %}selected{% endif %}>Featured Hardware</option>
+            <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+            <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest Additions</option>
+        </select>
+    </form>
+</div>
+
+<!-- Products Grid or Friendly Empty State -->
+{% if products %}
+<div class="products-grid">
+    {% for product in products %}
+    <div class="product-card">
+        {% if product['badge'] %}
+        <div class="product-badge-overlay">
+            <span class="badge badge-primary">{{ product['badge'] }}</span>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('product_detail', slug=product['slug']) }}" class="product-image-container">
+            <img src="{{ product['image_url'] }}" alt="{{ product['name'] }}" class="product-card-img" loading="lazy">
+        </a>
+
+        <div class="product-content-body">
+            <div class="product-category-row">
+                <span class="product-cat-name">{{ product['category_name'] }}</span>
+                <span class="product-stock-tag in-stock"><i class="fas fa-check"></i> In Stock</span>
+            </div>
+
+            <h3 class="product-card-title">
+                <a href="{{ url_for('product_detail', slug=product['slug']) }}">{{ product['name'] }}</a>
+            </h3>
+
+            <p class="product-card-snippet">{{ product['short_desc'] }}</p>
+
+            <div class="product-rating-row">
+                <div class="stars-mini">
+                    <i class="fas fa-star"></i>
+                    <span class="rating-val">{{ product['rating'] }}</span>
+                </div>
+                <span class="review-count">({{ product['reviews_count'] }} reviews)</span>
+            </div>
+
+            <div class="product-card-bottom">
+                <div class="price-container">
+                    <span class="price-amount">${{ "%.2f"|format(product['price']) }}</span>
+                </div>
+                <button class="btn btn-primary btn-sm btn-add-cart" data-product-id="{{ product['id'] }}">
+                    <i class="fas fa-cart-plus"></i> Add to Bag
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state-card">
+    <div class="empty-state-icon">
+        <i class="fas fa-magnifying-glass"></i>
+    </div>
+    <h3>No matching security hardware found</h3>
+    <p>We couldn't find any hardware matching your filter or query. Try searching for "FIDO2", "SSD", "Faraday", or "Router".</p>
+    <a href="{{ url_for('products') }}" class="btn btn-primary">
+        <i class="fas fa-rotate-left"></i> Reset All Filters
+    </a>
+</div>
+{% endif %}
+{% endblock %}

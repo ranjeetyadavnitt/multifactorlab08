@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}SecureShop - Certified Hardware Cybersecurity & Privacy Gear{% endblock %}
+
+{% block content %}
+<!-- Human Hero Section -->
+<section class="hero-section">
+    <div class="hero-left-content">
+        <div class="hero-tag-pill">
+            <span class="live-dot"></span>
+            <span>SECURESHOP ZERO-TRUST STORE</span>
+        </div>
+        <h1 class="hero-headline">
+            Physical cybersecurity built for humans who value privacy.
+        </h1>
+        <p class="hero-subtext">
+            Enterprise-grade FIDO2 biometric tokens, hardware-encrypted SSDs, and signal-blocking Faraday enclosures. Defend your digital perimeter with authentic silicon devices tested against interception.
+        </p>
+
+        <div class="hero-cta-group">
+            <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-bag-shopping"></i> Browse Catalog
+            </a>
+            <a href="{{ url_for('products', category='hardware-security') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-key"></i> FIDO2 Security Keys
+            </a>
+        </div>
+
+        <!-- Trust Highlights -->
+        <div class="hero-trust-bar">
+            <div class="trust-metric">
+                <div class="stars-row">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p><strong>4.9 / 5</strong> rating from 1,240+ defenders</p>
+            </div>
+            <div class="trust-divider"></div>
+            <div class="trust-metric">
+                <p><i class="fas fa-truck-fast" style="color: var(--primary);"></i> <strong>Fast & Discreet</strong> plain dispatch</p>
+                <p style="font-size: 11px; color: var(--text-muted);">No outward brand logos</p>
+            </div>
+            <div class="trust-divider"></div>
+            <div class="trust-metric">
+                <p><i class="fas fa-shield-check" style="color: var(--primary);"></i> <strong>30-Day Guarantee</strong></p>
+                <p style="font-size: 11px; color: var(--text-muted);">Full refund if unsatisfied</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Hero Hardware Card -->
+    <div class="hero-card-column">
+        <div class="hero-featured-card">
+            <div class="featured-card-badge-row">
+                <span class="badge badge-primary"><i class="fas fa-award"></i> Staff Pick</span>
+                <span class="stock-status-pill in-stock"><i class="fas fa-circle-check"></i> In Stock & Ready to Ship</span>
+            </div>
+
+            <div class="featured-card-visual">
+                <img src="{{ url_for('static', filename='images/products/titankey.svg') }}" alt="TitanKey Ultra FIDO2" class="featured-hero-img">
+            </div>
+
+            <div class="featured-card-info">
+                <div class="card-category-tag">Hardware Security</div>
+                <h3 class="card-featured-title">TitanKey Ultra FIDO2</h3>
+                <p class="card-featured-desc">
+                    Dual USB-C and NFC physical token. Eliminates credential phishing, SIM swapping, and MITM attacks forever.
+                </p>
+
+                <div class="card-pricing-row">
+                    <div>
+                        <span class="current-price">$59.99</span>
+                        <span class="original-price">$79.00</span>
+                        <span class="savings-tag">Save 24%</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm btn-add-cart" data-product-id="1">
+                        <i class="fas fa-cart-plus"></i> Add to Bag
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Navigation Bar -->
+<section class="section-container">
+    <div class="section-header-row">
+        <div>
+            <h2 class="section-heading"><i class="fas fa-layer-group"></i> Defense Categories</h2>
+            <p class="section-subheading">Choose from our vetted selection of tamper-proof physical security devices</p>
+        </div>
+    </div>
+
+    <div class="category-cards-grid">
+        {% for cat in categories %}
+        <a href="{{ url_for('products', category=cat['slug']) }}" class="category-nav-card">
+            <div class="category-icon-box">
+                <i class="{{ cat['icon'] }}"></i>
+            </div>
+            <div class="category-card-text">
+                <h3 class="category-card-name">{{ cat['name'] }}</h3>
+                <p class="category-card-desc">{{ cat['description'] }}</p>
+                <span class="category-card-cta">Browse devices <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Products Catalog Grid -->
+<section class="section-container">
+    <div class="section-header-row">
+        <div>
+            <h2 class="section-heading"><i class="fas fa-star"></i> Featured Security Hardware</h2>
+            <p class="section-subheading">Our most popular hardware devices, tested by researchers and engineers worldwide</p>
+        </div>
+        <a href="{{ url_for('products') }}" class="btn btn-secondary btn-sm">
+            View All Hardware <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="products-grid">
+        {% for product in featured_products %}
+        <div class="product-card">
+            {% if product['badge'] %}
+            <div class="product-badge-overlay">
+                <span class="badge badge-primary">{{ product['badge'] }}</span>
+            </div>
+            {% endif %}
+
+            <a href="{{ url_for('product_detail', slug=product['slug']) }}" class="product-image-container">
+                <img src="{{ product['image_url'] }}" alt="{{ product['name'] }}" class="product-card-img" loading="lazy">
+            </a>
+
+            <div class="product-content-body">
+                <div class="product-category-row">
+                    <span class="product-cat-name">{{ product['category_name'] }}</span>
+                    <span class="product-stock-tag in-stock"><i class="fas fa-check"></i> In Stock</span>
+                </div>
+
+                <h3 class="product-card-title">
+                    <a href="{{ url_for('product_detail', slug=product['slug']) }}">{{ product['name'] }}</a>
+                </h3>
+
+                <p class="product-card-snippet">{{ product['short_desc'] }}</p>
+
+                <div class="product-rating-row">
+                    <div class="stars-mini">
+                        <i class="fas fa-star"></i>
+                        <span class="rating-val">{{ product['rating'] }}</span>
+                    </div>
+                    <span class="review-count">({{ product['reviews_count'] }} reviews)</span>
+                </div>
+
+                <div class="product-card-bottom">
+                    <div class="price-container">
+                        <span class="price-amount">${{ "%.2f"|format(product['price']) }}</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm btn-add-cart" data-product-id="{{ product['id'] }}">
+                        <i class="fas fa-cart-plus"></i> Add to Bag
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Trust & Human Reassurance Pillars -->
+<section class="trust-pillars-section">
+    <div class="trust-pillars-grid">
+        <div class="pillar-card">
+            <div class="pillar-icon"><i class="fas fa-box-open"></i></div>
+            <div class="pillar-info">
+                <h4>Tamper-Evident Packaging</h4>
+                <p>Every shipment is protected with serialized holographic destructible void seals to expose any interception attempt.</p>
+            </div>
+        </div>
+
+        <div class="pillar-card">
+            <div class="pillar-icon"><i class="fas fa-user-secret"></i></div>
+            <div class="pillar-info">
+                <h4>Zero-Log Fulfillment</h4>
+                <p>Order metadata and shipping manifests are automatically expunged after confirmed receipt. We keep zero tracking data.</p>
+            </div>
+        </div>
+
+        <div class="pillar-card">
+            <div class="pillar-icon"><i class="fas fa-microchip"></i></div>
+            <div class="pillar-info">
+                <h4>Authentic Silicon Sourcing</h4>
+                <p>Hardware sourced directly from certified semiconductor manufacturers with firmware hashes verified prior to pack.</p>
+            </div>
+        </div>
+
+        <div class="pillar-card">
+            <div class="pillar-icon"><i class="fas fa-headset"></i></div>
+            <div class="pillar-info">
+                <h4>Human Security Support</h4>
+                <p>Have questions about YubiKey, FIDO2 WebAuthn, or cold storage? Real human hardware specialists answer within hours.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Real Human Customer Testimonials -->
+<section class="section-container">
+    <div class="section-header-row" style="text-align: center; display: block; margin-bottom: 32px;">
+        <h2 class="section-heading" style="justify-content: center;"><i class="fas fa-comments"></i> What Engineers & Privacy Advocates Say</h2>
+        <p class="section-subheading">Tested and deployed in the field by real developers, journalists, and security practitioners</p>
+    </div>
+
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <div class="testimonial-stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-quote">
+                "The TitanKey Ultra keys we procured for our infrastructure engineers came in immaculate tamper-evident packaging with verified serial seals. Phenomenal attention to detail."
+            </p>
+            <div class="testimonial-author">
+                <div class="author-avatar">MV</div>
+                <div class="author-details">
+                    <strong>Marcus Vance</strong>
+                    <span>Senior DevSecOps Engineer, CloudScale</span>
+                    <span class="verified-buyer-badge"><i class="fas fa-circle-check"></i> Verified Purchase</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <div class="testimonial-stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-quote">
+                "When reporting on sensitive topics, hardware defense is non-negotiable. The CipherShield Faraday sleeve and Aegis SSD give me complete confidence during border screenings."
+            </p>
+            <div class="testimonial-author">
+                <div class="author-avatar">ER</div>
+                <div class="author-details">
+                    <strong>Elena Rostova</strong>
+                    <span>Investigative Tech Journalist</span>
+                    <span class="verified-buyer-badge"><i class="fas fa-circle-check"></i> Verified Purchase</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <div class="testimonial-stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-quote">
+                "Fastest shipping I've seen for security tokens. Having real 2FA enforced right on the store site proves these folks actually live and breathe security. Will definitely order again."
+            </p>
+            <div class="testimonial-author">
+                <div class="author-avatar">DC</div>
+                <div class="author-details">
+                    <strong>David Chen</strong>
+                    <span>Systems Architect</span>
+                    <span class="verified-buyer-badge"><i class="fas fa-circle-check"></i> Verified Purchase</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Frequently Asked Questions Accordion -->
+<section class="section-container" style="max-width: 860px; margin: 0 auto 50px;">
+    <div class="section-header-row" style="text-align: center; display: block; margin-bottom: 24px;">
+        <h2 class="section-heading" style="justify-content: center;"><i class="fas fa-circle-question"></i> Common Questions</h2>
+        <p class="section-subheading">Everything you need to know about our products and order process</p>
+    </div>
+
+    <div class="faq-accordion-stack">
+        <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                <span>Why should I use a physical security key instead of SMS or email OTP?</span>
+                <i class="fas fa-chevron-down faq-arrow"></i>
+            </button>
+            <div class="faq-answer">
+                <p>Physical FIDO2/WebAuthn tokens use asymmetric public-key cryptography bound to the specific browser domain. Unlike SMS (vulnerable to SIM-swapping) or email OTPs (vulnerable to phishing), a physical key cannot be phished or intercepted, even if an attacker tricks you into visiting a spoofed login page.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                <span>How does SecureShop guarantee hardware hasn't been intercepted in transit?</span>
+                <i class="fas fa-chevron-down faq-arrow"></i>
+            </button>
+            <div class="faq-answer">
+                <p>Every single shipment is sealed with destructive holographic security tape containing unique laser-etched serial numbers that cannot be cleanly removed or resealed. We also dispatch in plain, unbranded exterior boxes with no outward indications of security contents.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                <span>Are these security keys compatible with macOS, Windows, iOS, and Android?</span>
+                <i class="fas fa-chevron-down faq-arrow"></i>
+            </button>
+            <div class="faq-answer">
+                <p>Yes. Our FIDO2 and WebAuthn authenticators are cross-platform and work natively over USB-A, USB-C, and NFC with Chrome, Firefox, Safari, Edge, 1Password, Google, GitHub, Apple ID, Windows Hello, and AWS IAM without requiring proprietary drivers.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                <span>What is your warranty and return policy?</span>
+                <i class="fas fa-chevron-down faq-arrow"></i>
+            </button>
+            <div class="faq-answer">
+                <p>We offer a 30-day no-questions-asked return policy. If a device does not fit your operational workflow, return it in original packaging for a 100% refund. All items also include a 2-year manufacturer replacement warranty.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Promo Callout Banner -->
+<div class="promo-callout-card">
+    <div class="promo-callout-content">
+        <span class="badge badge-primary"><i class="fas fa-tag"></i> EXCLUSIVE STORE PROMO</span>
+        <h3>Protect Your Digital Perimeter Today</h3>
+        <p>Apply code <strong class="promo-code-pill">SECURE20</strong> at checkout for <strong>20% off</strong> your security hardware order with free express delivery over $75.</p>
+    </div>
+    <div class="promo-callout-actions">
+        <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-shield-halved"></i> Shop Hardware Now
+        </a>
+    </div>
+</div>
+
+<script>
+function toggleFaq(btn) {
+    const item = btn.parentElement;
+    item.classList.toggle('open');
+}
+</script>
+{% endblock %}

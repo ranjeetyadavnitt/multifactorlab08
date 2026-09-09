@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart | SecureShop{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h1 class="section-title"><i class="fas fa-shopping-cart"></i> Your Security Hardware Cart</h1>
+    {% if cart_items %}
+    <span style="color: var(--text-muted); font-size: 14px;">{{ cart_items|length }} item(s) staged for checkout</span>
+    {% endif %}
+</div>
+
+{% if cart_items %}
+<div class="cart-layout">
+    <!-- Items List -->
+    <div class="cart-card">
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Hardware Item</th>
+                    <th style="text-align: center;">Price</th>
+                    <th style="text-align: center;">Quantity</th>
+                    <th style="text-align: right;">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>
+                        <div class="cart-item-info">
+                            <img src="{{ item['image_url'] }}" alt="{{ item['name'] }}" class="cart-item-img">
+                            <div>
+                                <a href="{{ url_for('product_detail', slug=item['slug']) }}" style="color: var(--text-primary); text-decoration: none; font-weight: 600; font-size: 14px;">
+                                    {{ item['name'] }}
+                                </a>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                                    Max Stock: {{ item['stock'] }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: center; font-weight: 600;">
+                        ${{ "%.2f"|format(item['price']) }}
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="quantity-control" style="margin: 0 auto;">
+                            <button type="button" class="qty-btn" onclick="updateCartQty({{ item['cart_id'] }}, -1)">-</button>
+                            <span class="qty-value" id="cart-qty-{{ item['cart_id'] }}">{{ item['quantity'] }}</span>
+                            <button type="button" class="qty-btn" onclick="updateCartQty({{ item['cart_id'] }}, 1)">+</button>
+                        </div>
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary);">
+                        ${{ "%.2f"|format(item['price'] * item['quantity']) }}
+                    </td>
+                    <td style="text-align: right;">
+                        <button type="button" onclick="removeCartItem({{ item['cart_id'] }})" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 6px;" title="Remove Item">
+                            <i class="fas fa-trash-alt" style="color: #ef4444;"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <a href="{{ url_for('products') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Continue Shopping
+            </a>
+            <form action="{{ url_for('cart_clear') }}" method="POST" onsubmit="return confirm('Empty your cart completely?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-secondary btn-sm" style="color: #ef4444;">
+                    <i class="fas fa-trash"></i> Empty Cart
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Summary Card -->
+    <div class="summary-card">
+        <h3>Order Summary</h3>
+        
+        {% if subtotal < 100 and subtotal > 0 %}
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span style="color: var(--text-secondary);">Add <strong style="color: var(--primary);">${{ "%.2f"|format(100 - subtotal) }}</strong> for <strong>Free Shipping</strong></span>
+                <span style="color: var(--text-muted); font-weight: 700;">{{ ((subtotal / 100) * 100)|int }}%</span>
+            </div>
+            <div style="height: 5px; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden;">
+                <div style="height: 100%; width: {{ [((subtotal / 100) * 100)|int, 100]|min }}%; background: var(--primary); border-radius: 9999px;"></div>
+            </div>
+        </div>
+        {% elif subtotal >= 100 %}
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #34d399; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-circle-check"></i>
+            <span>You unlocked <strong>FREE Express Shipping</strong>!</span>
+        </div>
+        {% endif %}
+        
+        <div class="summary-row">
+            <span>Hardware Subtotal</span>
+            <span>${{ "%.2f"|format(subtotal) }}</span>
+        </div>
+
+        {% if discount_amount > 0 %}
+        <div class="summary-row" style="color: var(--primary);">
+            <span>Discount ({{ coupon['code'] }})</span>
+            <span>-${{ "%.2f"|format(discount_amount) }}</span>
+        </div>
+        {% endif %}
+
+        <div class="summary-row">
+            <span>Discreet Stealth Shipping</span>
+            <span>
+                {% if shipping_fee == 0 %}
+                    <strong style="color: var(--primary);">FREE</strong>
+                {% else %}
+                    ${{ "%.2f"|format(shipping_fee) }}
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="summary-row">
+            <span>Estimated Sales Tax (8%)</span>
+            <span>${{ "%.2f"|format(tax_amount) }}</span>
+        </div>
+
+        <div class="summary-row total">
+            <span>Final Total</span>
+            <span style="color: var(--primary);">${{ "%.2f"|format(total) }}</span>
+        </div>
+
+        <!-- Promo Code Form -->
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">
+                Promotional / Defense Voucher Code:
+            </label>
+            <div class="coupon-box">
+                <input type="text" id="couponCodeInput" class="form-input" placeholder="e.g. SECURE20" value="{{ session.get('coupon_code', '') }}">
+                <button type="button" class="btn btn-secondary" onclick="applyCoupon()">Apply</button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+                💡 Active Codes: <strong style="color: var(--primary);">SECURE20</strong> (20% off) or <strong style="color: var(--primary);">FREESHIP</strong>
+            </div>
+        </div>
+
+        <!-- Checkout Action Button -->
+        <div style="margin-top: 24px;">
+            <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg btn-block">
+                <i class="fas fa-lock"></i> Proceed to Secure Checkout
+            </a>
+        </div>
+
+        <div style="margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; color: var(--text-muted);">
+            <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
+            <span>Encrypted with TLS 1.3 | Instant Verification</span>
+        </div>
+    </div>
+</div>
+{% else %}
+<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 48px; text-align: center; max-width: 580px; margin: 40px auto;">
+    <div style="font-size: 54px; color: var(--text-muted); margin-bottom: 16px;">
+        <i class="fas fa-shopping-basket"></i>
+    </div>
+    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">Your Security Cart is Empty</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 24px;">
+        You have not added any hardware authenticators, storage devices, or privacy gear yet.
+    </p>
+    <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-microchip"></i> Explore Security Hardware
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Account Security & Two-Factor Authentication | SecureShop{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="section-header">
+        <div>
+            <h1 class="section-title"><i class="fas fa-shield-halved"></i> Security & Authentication Settings</h1>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+                Manage multi-factor verification, hardware keys, and cryptographic credentials for <strong>{{ user['username'] }}</strong>.
+            </p>
+        </div>
+        <div>
+            <span class="badge {% if user['mfa_enabled'] %}badge-primary{% else %}badge-warning{% endif %}" style="font-size: 13px; padding: 6px 14px;">
+                <i class="fas fa-{{ 'shield-check' if user['mfa_enabled'] else 'triangle-exclamation' }}"></i>
+                Two-Factor {{ 'Enabled' if user['mfa_enabled'] else 'Disabled' }}
+            </span>
+        </div>
+    </div>
+
+    <div class="security-grid">
+        <!-- Left Column: Two-Factor Settings & Authenticator -->
+        <div>
+            <!-- MFA Status Card -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <div>
+                        <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 4px;">
+                            <i class="fas fa-mobile-screen-button" style="color: var(--primary); margin-right: 8px;"></i>
+                            Two-Factor Authentication (2FA)
+                        </h3>
+                        <p style="font-size: 13px; color: var(--text-secondary);">
+                            Require a second verification factor (TOTP or security passcode) during sign in.
+                        </p>
+                    </div>
+                    <form action="{{ url_for('account_security') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="toggle_mfa">
+                        {% if user['mfa_enabled'] %}
+                        <button type="submit" class="btn btn-secondary btn-sm" style="color: #ef4444;" onclick="return confirm('Disabling 2FA will reduce your account security. Are you sure?');">
+                            <i class="fas fa-power-off"></i> Disable 2FA
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-shield-alt"></i> Enable 2FA
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <!-- Authenticator Setup Section -->
+                <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+                    <div style="background: #fff; padding: 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: inline-flex;">
+                        <img src="{{ qr_code_url }}" alt="TOTP Authenticator QR Code" style="width: 140px; height: 140px; display: block;">
+                    </div>
+                    <div style="flex: 1; min-width: 260px;">
+                        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Authenticator App Pairing</h4>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+                            Scan with Google Authenticator, Microsoft Authenticator, 1Password, or YubiKey Authenticator.
+                        </p>
+                        <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px;">Manual Setup Secret Key:</label>
+                        <div class="copy-key-box" style="margin-bottom: 8px;">
+                            <code id="userTotpSecret" style="font-size: 13px;">{{ totp_secret }}</code>
+                            <button type="button" class="btn btn-secondary btn-xs" onclick="copyText('userTotpSecret', this)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted);">
+                            <i class="fas fa-info-circle" style="color: var(--primary);"></i> Algorithm: TOTP SHA1 (RFC 6238, 30s)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single-Use Backup Recovery Codes Card -->
+            <div class="settings-card" style="margin-top: 24px;">
+                <div class="settings-card-header">
+                    <div>
+                        <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 4px;">
+                            <i class="fas fa-key" style="color: var(--primary); margin-right: 8px;"></i>
+                            Single-Use Recovery Codes
+                        </h3>
+                        <p style="font-size: 13px; color: var(--text-secondary);">
+                            Backup codes grant emergency access if you lose access to your authenticator app.
+                        </p>
+                    </div>
+                    <form action="{{ url_for('account_security') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="regenerate_backup_codes">
+                        <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Regenerating will invalidate existing codes. Continue?');">
+                            <i class="fas fa-sync-alt"></i> Generate New Codes
+                        </button>
+                    </form>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <div class="backup-codes-grid">
+                    {% for code in backup_codes %}
+                    <div class="backup-code-pill">
+                        <code>{{ code }}</code>
+                    </div>
+                    {% else %}
+                    <p style="color: var(--text-muted); font-size: 13px;">No remaining backup codes. Generate a new batch above.</p>
+                    {% endfor %}
+                </div>
+                
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 14px;">
+                    <i class="fas fa-lock"></i> Each code can only be used once. Print or store them in an encrypted password vault.
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Column: Account Snapshot & Security Audit Activity -->
+        <div>
+            <!-- Account Details Card -->
+            <div class="settings-card">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">
+                    <i class="fas fa-user-shield" style="color: var(--primary); margin-right: 8px;"></i>
+                    Account Identity
+                </h3>
+                <div class="account-info-row">
+                    <span class="info-label">Username</span>
+                    <span class="info-val"><strong>{{ user['username'] }}</strong></span>
+                </div>
+                <div class="account-info-row">
+                    <span class="info-label">Email Address</span>
+                    <span class="info-val">{{ user['email'] }}</span>
+                </div>
+                <div class="account-info-row">
+                    <span class="info-label">Account Role</span>
+                    <span class="info-val"><span class="badge badge-primary">{{ user['role']|capitalize }}</span></span>
+                </div>
+                <div class="account-info-row">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-val" style="color: var(--text-muted);">{{ user['created_at'][:10] }}</span>
+                </div>
+            </div>
+
+            <!-- Recent Security Events for User -->
+            <div class="settings-card" style="margin-top: 24px;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">
+                    <i class="fas fa-clipboard-check" style="color: var(--primary); margin-right: 8px;"></i>
+                    Recent Security Logs
+                </h3>
+                <div class="mini-log-list">
+                    {% for log in recent_logs %}
+                    <div class="mini-log-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span class="log-event-tag">{{ log['event_type'] }}</span>
+                            <span class="log-time">{{ log['created_at'][11:19] }}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            {{ log['details'] or 'Event recorded' }}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                            IP: {{ log['ip_address'] }}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p style="color: var(--text-muted); font-size: 13px;">No security logs recorded yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyText(elemId, btn) {
+    const text = document.getElementById(elemId).textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check" style="color: var(--primary);"></i> Copied';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    });
+}
+</script>
+{% endblock %}

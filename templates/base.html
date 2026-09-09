@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}SecureShop | Certified Hardware Security & Privacy Gear{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono for warm, modern human aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for crisp modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Modern Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Interactive Human Announcement Topbar -->
+    <div class="topbar-announcement">
+        <div class="announcement-content">
+            <span class="announcement-badge"><i class="fas fa-sparkles"></i> PROMO</span>
+            <span class="announcement-text">
+                Free Express Worldwide Shipping on orders over $75 • Use code <strong>SECURE20</strong> for 20% off
+            </span>
+            <button type="button" class="btn-copy-code" onclick="copyPromoCode('SECURE20', this)" title="Copy promo code to clipboard">
+                <i class="far fa-copy"></i> <span>Copy Code</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="navbar">
+            <a href="{{ url_for('index') }}" class="brand-logo" aria-label="SecureShop Home">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="SecureShop Logo" class="brand-logo-img">
+            </a>
+
+            <!-- Search Form with Keyboard Shortcut Hint -->
+            <form action="{{ url_for('products') }}" method="GET" class="search-form" id="navSearchForm">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="q" id="globalSearchInput" placeholder="Search keys, encrypted drives, faraday bags..." value="{{ request.args.get('q', '') }}" autocomplete="off">
+                    <kbd class="search-shortcut" title="Press Ctrl+K or / to search">Ctrl K</kbd>
+                </div>
+            </form>
+
+            <!-- Navigation Actions -->
+            <ul class="nav-actions">
+                <li>
+                    <a href="{{ url_for('products') }}" class="nav-link-item {% if request.path == '/products' and not request.args.get('category') %}active{% endif %}">
+                        <i class="fas fa-grid-2"></i> Catalog
+                    </a>
+                </li>
+
+                <!-- Shopping Bag Button with Spring Counter -->
+                <li>
+                    <a href="{{ url_for('cart_view') }}" class="cart-pill-btn" id="navCartBtn" aria-label="Shopping Cart">
+                        <div class="cart-icon-wrap">
+                            <i class="fas fa-bag-shopping"></i>
+                            <span class="cart-badge" id="navCartBadge">{{ cart_count }}</span>
+                        </div>
+                        <span class="cart-label">Bag</span>
+                    </a>
+                </li>
+
+                <!-- User Profile & Auth Dropdown -->
+                {% if session.get('user_id') %}
+                <li class="user-dropdown-wrap">
+                    <button class="user-profile-trigger" id="userMenuBtn" aria-expanded="false" aria-haspopup="true">
+                        <div class="user-avatar-circle">
+                            {{ session.get('username')[:2]|upper }}
+                        </div>
+                        <span class="user-name-text">{{ session.get('username') }}</span>
+                        {% if session.get('role') == 'admin' %}
+                        <span class="role-pill admin">Admin</span>
+                        {% endif %}
+                        <i class="fas fa-chevron-down caret-icon"></i>
+                    </button>
+                    
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <div class="dropdown-user-header">
+                            <p class="dropdown-user-name">{{ session.get('username') }}</p>
+                            <p class="dropdown-user-email">{{ session.get('email') }}</p>
+                        </div>
+                        <div class="dropdown-separator"></div>
+
+                        {% if session.get('role') == 'admin' %}
+                        <div class="dropdown-section-label">Administration</div>
+                        <a href="{{ url_for('admin_dashboard') }}" class="dropdown-link">
+                            <i class="fas fa-chart-pie"></i> Admin Console
+                        </a>
+                        <a href="{{ url_for('admin_products') }}" class="dropdown-link">
+                            <i class="fas fa-boxes-stacked"></i> Inventory SKUs
+                        </a>
+                        <a href="{{ url_for('admin_orders') }}" class="dropdown-link">
+                            <i class="fas fa-dolly"></i> Order Dispatch
+                        </a>
+                        <a href="{{ url_for('admin_audit_logs') }}" class="dropdown-link">
+                            <i class="fas fa-file-shield"></i> Security Audit Logs
+                        </a>
+                        <div class="dropdown-separator"></div>
+                        {% endif %}
+
+                        <div class="dropdown-section-label">Account</div>
+                        <a href="{{ url_for('account_security') }}" class="dropdown-link">
+                            <i class="fas fa-shield-halved"></i> Security & 2FA
+                        </a>
+                        <a href="{{ url_for('orders_history') }}" class="dropdown-link">
+                            <i class="fas fa-box"></i> Order History
+                        </a>
+
+                        <div class="dropdown-separator"></div>
+                        <a href="{{ url_for('logout') }}" class="dropdown-link logout-link">
+                            <i class="fas fa-arrow-right-from-bracket"></i> Sign Out
+                        </a>
+                    </div>
+                </li>
+                {% else %}
+                <li class="auth-buttons-group">
+                    <a href="{{ url_for('login') }}" class="btn btn-ghost btn-sm">
+                        <i class="fas fa-lock"></i> Sign In
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus"></i> Join
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </header>
+
+    <!-- Flash Message Container -->
+    <main class="page-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages-stack">
+              {% for category, message in messages %}
+                <div class="flash-toast flash-{{ 'danger' if category == 'error' else category }}" role="alert">
+                  <div class="flash-icon">
+                    {% if category == 'error' or category == 'danger' %}
+                      <i class="fas fa-triangle-exclamation"></i>
+                    {% elif category == 'info' %}
+                      <i class="fas fa-circle-info"></i>
+                    {% elif category == 'warning' %}
+                      <i class="fas fa-bell"></i>
+                    {% else %}
+                      <i class="fas fa-circle-check"></i>
+                    {% endif %}
+                  </div>
+                  <div class="flash-text">{{ message }}</div>
+                  <button type="button" class="flash-close" onclick="this.parentElement.remove()" aria-label="Close notification">
+                    <i class="fas fa-xmark"></i>
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Modern Human E-Commerce Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-top-grid">
+                <!-- Brand & Mission Column -->
+                <div class="footer-brand-col">
+                    <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="SecureShop" class="footer-logo">
+                    <p class="footer-mission-text">
+                        Certified hardware-level cybersecurity devices, air-gapped cold storage, and physical privacy gear curated for developers, privacy advocates, and everyday humans.
+                    </p>
+                    <div class="footer-trust-pills">
+                        <span class="trust-pill"><i class="fas fa-truck-fast"></i> Discreet Shipping</span>
+                        <span class="trust-pill"><i class="fas fa-rotate-left"></i> 30-Day Returns</span>
+                        <span class="trust-pill"><i class="fas fa-shield-check"></i> Zero Telemetry</span>
+                    </div>
+                </div>
+
+                <!-- Catalog Column -->
+                <div class="footer-links-col">
+                    <h4 class="footer-col-title">Hardware Catalog</h4>
+                    <ul class="footer-links-list">
+                        <li><a href="{{ url_for('products', category='hardware-security') }}">FIDO2 Security Keys</a></li>
+                        <li><a href="{{ url_for('products', category='encrypted-storage') }}">Hardware Encrypted SSDs</a></li>
+                        <li><a href="{{ url_for('products', category='network-defense') }}">Hardware VPN Gateways</a></li>
+                        <li><a href="{{ url_for('products', category='privacy-defense') }}">Faraday Enclosures</a></li>
+                        <li><a href="{{ url_for('products') }}">All Certified Devices</a></li>
+                    </ul>
+                </div>
+
+                <!-- Reassurance & Support Column -->
+                <div class="footer-links-col">
+                    <h4 class="footer-col-title">Trust & Support</h4>
+                    <ul class="footer-links-list">
+                        <li><a href="javascript:void(0)">Tamper-Evident Seals</a></li>
+                        <li><a href="javascript:void(0)">Supply Chain Serial Verification</a></li>
+                        <li><a href="javascript:void(0)">Zero-Log Customer Policy</a></li>
+                        <li><a href="javascript:void(0)">PGP Signed Invoices</a></li>
+                        <li><a href="javascript:void(0)">Warranty & Return Policy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Security Verification Card -->
+                <div class="footer-security-col">
+                    <h4 class="footer-col-title">Security Perimeter</h4>
+                    <div class="footer-security-card">
+                        <div class="security-status-line">
+                            <span class="live-pulse"></span>
+                            <span class="status-title">Two-Factor Shield Active</span>
+                        </div>
+                        <p class="status-desc">
+                            All logins and sensitive mutations are defended with RFC 6238 TOTP, PBKDF2 cryptography, and CSRF token defenses.
+                        </p>
+                        <div class="accepted-payments">
+                            <span title="Visa"><i class="fab fa-cc-visa"></i></span>
+                            <span title="Mastercard"><i class="fab fa-cc-mastercard"></i></span>
+                            <span title="American Express"><i class="fab fa-cc-amex"></i></span>
+                            <span title="Apple Pay"><i class="fab fa-apple-pay"></i></span>
+                            <span title="Bitcoin"><i class="fab fa-bitcoin"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright & Compliance -->
+            <div class="footer-bottom-bar">
+                <p>&copy; 2026 SecureShop Hardware Technologies. Designed for humans who demand digital autonomy.</p>
+                <div class="footer-bottom-badges">
+                    <span><i class="fas fa-check-double" style="color: var(--primary);"></i> FIDO2 / WebAuthn Certified</span>
+                    <span><i class="fas fa-lock" style="color: var(--primary);"></i> TLS 1.3 AES-256</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Client JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
